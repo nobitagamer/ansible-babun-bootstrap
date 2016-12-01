@@ -1,24 +1,31 @@
 #!/usr/bin/env zsh
+ANSIBLE_DIR=$HOME/ansible
 
 HOME=~
 ANSIBLE_DIR=$HOME/ansible
 ANSIBLE_WORKSPACE=$HOME/ansible_workspace
 AWS_CLI=0
 
+CURRENT_DIR=$( pwd )
+
 if [ -f /etc/ansible-babun-bootstrap.completed ]
 then
-    printf "please wait...\n\n"
+    printf "First init setting up Ansible in Babun has already been completed, please wait...\n\n"
     sleep 2
     cd ${ANSIBLE_DIR}
     if [ ${BOOTSTRAP_ANSIBLE_UPDATE} ]
     then
-        printf "updating ansible source..."
+        printf "Performing Ansible update from source, if available..."
         git pull --rebase &> /dev/null
         git submodule update --init --recursive &> /dev/null
         printf ".ok\n"
     fi
-    printf "configuring ansible virtual environment..."
+    printf "Configuring ansible virtual environment..."
     source ./hacking/env-setup &> /dev/null
+	
+	printf ".ok\nUpdating Ansible Vagrant Shims in bin Directory..."
+	cp -ru $HOME/ansible-babun-bootstrap/ansible-playbook.bat $HOME/ansible/bin/ansible-playbook.bat
+
     printf ".ok\nloading workspace..."
     cd ${ANSIBLE_WORKSPACE}
     sleep 3
@@ -45,8 +52,25 @@ else
     cd $HOME
     clear
     printf "MRM Automation Install\nThe install action may take several minutes.\n\n"
-    printf "installing deps..."
+    printf "Installing deps..."
     pact install figlet gcc-g++ wget python python-crypto python-paramiko libyaml-devel libffi-devel &> /dev/null
+
+    if [ ! -f /etc/ansible-babun-bootstrap.completed ]
+        #Replace babun sudo with new fake sudo for Ansible, throwing way all sudo args.
+        echo "#!/usr/bin/env bash" > /usr/bin/sudo
+        echo "count=0" >> /usr/bin/sudo
+        echo "for var in "$@"" >> /usr/bin/sudo
+        echo "  do" >> /usr/bin/sudo
+        echo "    (( count++ ))" >> /usr/bin/sudo
+        echo "  done" >> /usr/bin/sudo
+        echo "shift $count" >> /usr/bin/sudo
+        echo "exec "$@"" >> /usr/bin/sudo
+    fi
+
+    #Create initial Ansible hosts inventory
+    mkdir -p /etc/ansible/
+    echo "127.0.0.1" > /etc/ansible/hosts
+    chmod -x /etc/ansible/hosts
      
     wget https://bootstrap.pypa.io/get-pip.py &> /dev/null
     python get-pip.py &> /dev/null
@@ -67,17 +91,18 @@ else
     fi
     printf ".ok\n"
     
-    printf "installing ansible..."
+    printf "Installing ansible..."
     git clone https://github.com/ansible/ansible.git --recursive $ANSIBLE_DIR  &> /dev/null
     source $ANSIBLE_DIR/hacking/env-setup &> /dev/null
     
     cp $ANSIBLE_DIR/examples/ansible.cfg ~/.ansible.cfg
+    # Use paramiko to allow passwords and disable host key checking for performance.
     sed -i 's|#\?transport.*$|transport = paramiko|;s|#host_key_checking = False|host_key_checking = False|' ~/.ansible.cfg
 
     touch /etc/ansible-babun-bootstrap.completed
     printf ".ok\n"    
 
-    printf "seeding test project..."
+    printf "Seeding test project..."
     mkdir -p ~/ansible_workspace/test/{conf,inventory}
     touch ~/ansible_workspace/test/conf/{.ansible_vault,vault_key}
     chmod -x ~/ansible_workspace/test/conf/{.ansible_vault,vault_key}
@@ -117,17 +142,13 @@ EOF
     printf "configuring zhell for ansible.."
     
     cat >> ~/.zshrc <<'EOF'
-
 #
 # Ansible in Babun
 #
-
 # If you want to update Ansible every time set BOOTSTRAP_ANSIBLE_UPDATE=1
 export BOOTSTRAP_ANSIBLE_UPDATE=0
-
 # Configure Babun for Ansible
 source ~/ansible-babun-bootstrap/ansible-babun-bootstrap.sh
-
 # Figlet Banner
 figlet "MRM Automation"
 cd ~/ansible_workspace
@@ -139,7 +160,7 @@ EOF
     cd $ANSIBLE_WORKSPACE/test
     clear
     figlet "MRM Automation"
-    printf "testing ansible local connection...\n"
+    printf "Testing ansible local connection...\n"
     ansible local -m ping
 
     if [ ! -d  $ANSIBLE_WORKSPACE/ansible-openlink ]
