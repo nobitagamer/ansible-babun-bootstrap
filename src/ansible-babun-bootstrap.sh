@@ -1,7 +1,6 @@
 #!/usr/bin/env zsh
-ANSIBLE_DIR=$HOME/ansible
 
-HOME=~
+# HOME=~
 ANSIBLE_DIR=$HOME/ansible
 ANSIBLE_WORKSPACE=$HOME/ansible_workspace
 AWS_CLI=0
@@ -22,11 +21,11 @@ then
     fi
     printf "Configuring ansible virtual environment..."
     source ./hacking/env-setup &> /dev/null
-	
+
 	printf ".ok\nUpdating Ansible Vagrant Shims in bin Directory..."
 	cp -ru $HOME/ansible-babun-bootstrap/ansible-playbook.bat $HOME/ansible/bin/ansible-playbook.bat
 
-    printf ".ok\nloading workspace..."
+  printf ".ok\nLoading workspace..."
     cd ${ANSIBLE_WORKSPACE}
     sleep 3
     printf ".ok\n"
@@ -44,10 +43,10 @@ then
     printf "Testing PING to all openlink servers\n"
     chmod -x conf/{.ansible_vault,vault_key}
 	ansible  vp_all,ew_all -i inventory -m win_ping
-	
-	clear
-    figlet "MRM Automation"
-	printf "\nConfigure Windows remotes with the below PS cmd\n. { iwr -useb https://http://bit.ly/2obrtmj } | iex;\n\n"
+  # clear
+
+  figlet "MRM Automation"
+	printf "\nConfigure Windows remotes with the below PS cmd\n. { iwr -useb https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1 } | iex;\n\n"
 else
     cd $HOME
     clear
@@ -55,7 +54,8 @@ else
     printf "Installing deps..."
     pact install figlet gcc-g++ wget python python-crypto python-paramiko libyaml-devel libffi-devel &> /dev/null
 
-    if [ ! -f /etc/ansible-babun-bootstrap.completed ]
+    if [ ! -f /usr/bin/sudo ]
+    then
         #Replace babun sudo with new fake sudo for Ansible, throwing way all sudo args.
         echo "#!/usr/bin/env bash" > /usr/bin/sudo
         echo "count=0" >> /usr/bin/sudo
@@ -68,39 +68,39 @@ else
     fi
 
     #Create initial Ansible hosts inventory
-    mkdir -p /etc/ansible/
-    echo "127.0.0.1" > /etc/ansible/hosts
-    chmod -x /etc/ansible/hosts
-     
+    # mkdir -p /etc/ansible/
+    # echo "127.0.0.1" > /etc/ansible/hosts
+    # chmod -x /etc/ansible/hosts
+
     wget https://bootstrap.pypa.io/get-pip.py &> /dev/null
     python get-pip.py &> /dev/null
     rm -r get-pip.py
-    
+
     curl -sL https://github.com/pallets/markupsafe/archive/master.zip -o markupsafe.zip
     unzip markupsafe.zip &> /dev/null
-    cd markupsafe-master 
+    cd markupsafe-master
     python setup.py --without-speedups install &> /dev/null
     cd $HOME
     rm -rf markupsafe*
-    
-    if [ $AWS_CLI = 1 ] 
+
+    if [ $AWS_CLI = 1 ]
     then
         pip install pywinrm cryptography pyyaml jinja2 httplib2 boto awscli &> /dev/null
     else
         pip install pywinrm cryptography pyyaml jinja2 &> /dev/null
     fi
     printf ".ok\n"
-    
+
     printf "Installing ansible..."
     git clone https://github.com/ansible/ansible.git --recursive $ANSIBLE_DIR  &> /dev/null
     source $ANSIBLE_DIR/hacking/env-setup &> /dev/null
-    
+
     cp $ANSIBLE_DIR/examples/ansible.cfg ~/.ansible.cfg
     # Use paramiko to allow passwords and disable host key checking for performance.
     sed -i 's|#\?transport.*$|transport = paramiko|;s|#host_key_checking = False|host_key_checking = False|' ~/.ansible.cfg
 
     touch /etc/ansible-babun-bootstrap.completed
-    printf ".ok\n"    
+    printf ".ok\n"
 
     printf "Seeding test project..."
     mkdir -p ~/ansible_workspace/test/{conf,inventory}
@@ -111,7 +111,7 @@ else
 [local]
 localhost ansible_connection=local
 EOF
-    
+
     cat > ~/ansible_workspace/test/ansible.cfg << 'EOF'
 [defaults]
 ansible_managed = Ansible managed: {file} modified on %Y-%m-%d %H:%M:%S by {uid} on {host}
@@ -136,11 +136,11 @@ ssh_args = -o ControlMaster=auto -o ControlPersist=30m -o StrictHostKeyChecking=
 control_path = /tmp/ansible-ssh-%%h-%%p-%%r
 
 [privilege_escalation]
-become_user = true  
+become_user = true
 EOF
-    printf ".ok\n"    
+    printf ".ok\n"
     printf "configuring zhell for ansible.."
-    
+
     cat >> ~/.zshrc <<'EOF'
 #
 # Ansible in Babun
@@ -154,7 +154,7 @@ figlet "MRM Automation"
 cd ~/ansible_workspace
 EOF
 
-    printf ".ok\n\n"    
+    printf ".ok\n\n"
     echo "MRM Automation completed, redirecting...!"
     sleep 2
     cd $ANSIBLE_WORKSPACE/test
