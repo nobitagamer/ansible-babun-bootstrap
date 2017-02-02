@@ -1,12 +1,12 @@
 #!/usr/bin/env zsh
 
 if [ ! -d ansible-babun-bootstrap ]
- then
-  git clone https://github.com/tiangolo/ansible-babun-bootstrap.git
+then
+  git clone https://github.com/kedwards/ansible-babun-bootstrap.git ~/ansible-babun-bootstrap
 else
-  cd ansible-babun-bootstrap
+  cd ~/ansible-babun-bootstrap
   git pull
-  cd ..
 fi
 
-source ansible-babun-bootstrap/ansible-babun-bootstrap.sh
+cd ~/ansible-babun-bootstrap
+source ansible-babun-bootstrap.sh

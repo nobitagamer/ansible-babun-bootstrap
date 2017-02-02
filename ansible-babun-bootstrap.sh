@@ -1,84 +1,115 @@
 #!/usr/bin/env zsh
-ANSIBLE_DIR=$HOME/ansible
 
-CURRENT_DIR=$( pwd )
+HOME=~
+ANSIBLE_DIR=$HOME/ansible
+CURRENT_DIR=$(pwd)
+AWS_CLI=0
+DEPS="pywinrm cryptography"
 
 if [ -f /etc/ansible-babun-bootstrap.completed ]
-  then
-    echo "First init setting up Ansible in Babun has already been completed."
-    cd $ANSIBLE_DIR
-    if [ $BOOTSTRAP_ANSIBLE_UPDATE = 1 ]
-     then
-     echo "Performing Ansible update from source, if available."
-     #Setup rebase Ansible
-     git pull --rebase
-     git submodule update --init --recursive
-    fi
-    source ./hacking/env-setup
-    cd $CURRENT_DIR
+then
+	printf "please wait...\n\n"
+	cd ${ANSIBLE_DIR}
+	if [ ${BOOTSTRAP_ANSIBLE_UPDATE} = 1 ]
+	then
+		printf "updating ansible source..."
+		git pull --rebase &> /dev/null
+		git submodule update --init --recursive &> /dev/null
+		printf "OK\n"
+	fi
+	printf "configuring ansible virtual environment..."
+	source ./hacking/env-setup &> /dev/null
+	printf "OK\nloading workspace..."
+	cd ${CURRENT_DIR}
+	sleep 3
+	printf "OK\n"
+	sleep 2
+	clear
+else
+	# Ansible dependencies
+	pact install curl figlet gcc-g++ git libyaml-devel openssh openssl opensssl-devel python python-crypto python-devel python-jinja2 python-paramiko python-setuptools python-yaml vim wget &> /dev/null
+	easy_install-2.7 pip &> /dev/null
 	
-	echo "Update Ansible Vagrant Shims in bin Directory"
-	cp -r $HOME/ansible-babun-bootstrap/ansible-playbook.bat $HOME/ansible/bin/ansible-playbook.bat
-
-    echo "Remember to setup the ssh-agent."
-
-  else
-    #Replace babun sudo with new fake sudo for Ansible, throwing way all sudo args.
-    echo "#!/usr/bin/env bash" > /usr/bin/sudo
-    echo "count=0" >> /usr/bin/sudo
-    echo "for var in "$@"" >> /usr/bin/sudo
-    echo "  do" >> /usr/bin/sudo
-    echo "    (( count++ ))" >> /usr/bin/sudo
-    echo "  done" >> /usr/bin/sudo
-    echo "shift $count" >> /usr/bin/sudo
-    echo "exec "$@"" >> /usr/bin/sudo
-
-    #Install Ansible Prereqs
-    pact install python
-    pact install python-paramiko
-    pact install python-crypto
-    pact install gcc-g++
-    pact install wget
-    pact install openssh
-    pact install python-setuptools
-    pact install libyaml-devel
-    easy_install pip
-    pip install PyYAML Jinja2 httplib2 boto awscli
-
-    #Create initial Ansible hosts inventory
-    mkdir -p /etc/ansible/
-    echo "127.0.0.1" > /etc/ansible/hosts
-    chmod -x /etc/ansible/hosts
-
-    #Setup Ansible from Source
-    mkdir -p $ANSIBLE_DIR
-    git clone git://github.com/ansible/ansible.git --recursive $ANSIBLE_DIR
-    cd $ANSIBLE_DIR
-    source ./hacking/env-setup
-    cd $CURRENT_DIR
+	# AWS CLI
+	if [ $AWS_CLI = 1 ] 
+	then
+		DEPS="${DEPS} httplib2 boto awscli"
+	fi
 	
-	echo "Copy Ansible Vagrant Shims to bin Directory"
-	cp -r $HOME/ansible-babun-bootstrap/ansible-playbook.bat $HOME/ansible/bin/ansible-playbook.bat
+	pip install ${DEPS}
+	
+	# Create initial Ansible hosts inventory and test workspace
+	mkdir -p $HOME/ansible_workspace/test/{conf,inventory} /etc/ansible
+	touch $HOME/ansible_workspace/test/conf/{.ansible_vault2,vault_key2}
+	cat > tee $HOME/ansible_worksapce/test/inventory/hosts /etc/ansible/hosts << 'EOF'
+# Local control machine
+[local]
+localhost ansible_connection=local
+EOF
+    
+	cat > $HOME/ansible_worksapce/test/ansible.cfg << 'EOF'
+[defaults]
+ansible_managed = Ansible managed: {file} modified on %Y-%m-%d %H:%M:%S by {uid} on {host}
+inventory = inventory/
+module_name = win_ping
+callback_plugins = callback_plugins/
+filter_plugins = filter_plugins/
+var_plugins = var_plugins/
+retry_files_enabled = False
+forks = 50
+vault_password_file = conf/.ansible_vault
 
-    # Copy default config
-    cp $ANSIBLE_DIR/examples/ansible.cfg ~/.ansible.cfg
-    # Use paramiko to allow passwords
-    sed -i 's|#\?transport.*$|transport = paramiko|' ~/.ansible.cfg
-    # Disable host key checking for performance
-    sed -i 's|#host_key_checking = False|host_key_checking = False|' ~/.ansible.cfg
+[filters]
+vault_filter_key = conf/vault_key
+vault_filter_salt =
+vault_filter_iterations = 1000000
+vault_filter_generate_key = yes
 
-    BOOTSTRAP_ANSIBLE_UPDATE=1
-    #Set this script to run at Babun startup
-    echo "# If you don't want to update Ansible every time set BOOTSTRAP_ANSIBLE_UPDATE=0" >> $HOME/.zshrc
-    echo "export BOOTSTRAP_ANSIBLE_UPDATE=1" >> $HOME/.zshrc
-    echo "source $HOME/ansible-babun-bootstrap/ansible-babun-bootstrap.sh" >> $HOME/.zshrc
-    echo " "
-    echo "Remember to setup the ssh-agent."
-    echo " "
-    echo "Please restart Babun!!!!"
+[ssh_connection]
+pipelining = True
+ssh_args = -o ControlMaster=auto -o ControlPersist=30m -o StrictHostKeyChecking=no
+control_path = /tmp/ansible-ssh-%%h-%%p-%%r
 
-    # touch a file to mark first app init completed
-    touch /etc/ansible-babun-bootstrap.completed
+[privilege_escalation]
+become_user = true	
+EOF
+	
+	# Setup Ansible from Source
+	mkdir -p $ANSIBLE_DIR
+	git clone https://github.com/ansible/ansible.git --recursive $ANSIBLE_DIR &> /dev/null
+	cd $ANSIBLE_DIR
+	source ./hacking/env-setup &> /dev/null
+	cd $CURRENT_DIR
 
+	# Copy default config
+	cp $ANSIBLE_DIR/examples/ansible.cfg ~/.ansible.cfg
 
+	# Use paramiko to allow passwords
+	sed -i 's|#\?transport.*$|transport = paramiko|' ~/.ansible.cfg
+
+	# Disable host key checking for performance
+	sed -i 's|#host_key_checking = False|host_key_checking = False|' ~/.ansible.cfg
+	
+	# touch a file to mark first app init completed
+	touch /etc/ansible-babun-bootstrap.completed
+	
+	# Set this script to run at Babun startup
+	cat >> $HOME/.zshrc <<'EOF'
+
+#
+# Ansible in Babun
+#
+
+# If you want to update Ansible every time set BOOTSTRAP_ANSIBLE_UPDATE=1
+export BOOTSTRAP_ANSIBLE_UPDATE=0
+
+# Configure Babun for Ansible
+source $HOME/ansible-babun-bootstrap/ansible-babun-bootstrap.sh
+
+# Figlet Banner
+figlet "MRM Automation"
+cd $HOME/ansible_workspace
+EOF
+
+	echo "Ansible in Babun completed, please restart Babun!"
 fi

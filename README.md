@@ -10,7 +10,7 @@ Simple shell script to setup [Ansible](http://www.ansible.com/) within [Babun](h
 * Run the following command:
 
 ```
-curl -s https://raw.githubusercontent.com/tiangolo/ansible-babun-bootstrap/master/install.sh | source /dev/stdin
+curl -s https://raw.githubusercontent.com/kedwards/ansible-babun-bootstrap/master/install.sh | source /dev/stdin
 ```
 
 Note: the previous command will get a script from this repository and run it immediately, performing all the needed
@@ -30,7 +30,7 @@ cd
 * Clone this repository:
 
 ```
-git clone https://github.com/tiangolo/ansible-babun-bootstrap
+git clone https://github.com/kedwards/ansible-babun-bootstrap
 ```
 
 * Enter the repository directory:
