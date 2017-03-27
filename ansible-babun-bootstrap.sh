@@ -27,7 +27,8 @@ then
 else
 	printf "~ MRM Ansible Install ~\n\n"
 	printf "installing dependencies.."
-	pact install figlet gcc-g++ libffi-devel libyaml-devel python python-crypto python-jinja2 python-paramiko python-yaml libyaml-devel python-setuptools python-pip python-devel &> /dev/null
+    pact install figlet gcc-g++ python python-crypto python-paramiko python-yaml libyaml-devel python-setuptools &> /dev/null
+	#pact install figlet gcc-g++ libffi-devel libyaml-devel python python-crypto python-jinja2 python-paramiko python-yaml libyaml-devel python-setuptools python-pip python-devel &> /dev/null
 	easy_install-2.7 pip &> /dev/null
 	
 	if [ $AWS_CLI = 1 ] 
