@@ -27,9 +27,13 @@ then
 else
 	printf "~ MRM Ansible Install ~\n\n"
 	printf "installing dependencies.."
-    pact install figlet gcc-g++ python python-crypto python-paramiko python-yaml python-jinja2 libyaml-devel python-setuptools &> /dev/null
-	#pact install figlet gcc-g++ libffi-devel libyaml-devel python python-crypto python-jinja2 python-paramiko python-yaml libyaml-devel python-setuptools python-pip python-devel &> /dev/null
-	easy_install-2.7 pip &> /dev/null
+    pact install figlet gcc-g++ python python-crypto python-paramiko libyaml-devel libffi-devel &> /dev/null
+	
+	wget https://bootstrap.pypa.io/get-pip.py &> /dev/null
+	
+	python get-pip.py &> /dev/null
+	
+	rm -r get-pip.py
 	
 	if [ $AWS_CLI = 1 ] 
 	then
@@ -40,17 +44,15 @@ else
 	printf ".ok\n"
 	
 	printf "installing ansible.."
-	mkdir -p $ANSIBLE_DIR
 	git clone https://github.com/ansible/ansible.git --recursive $ANSIBLE_DIR  &> /dev/null
 	cd $ANSIBLE_DIR
 	source ./hacking/env-setup &> /dev/null
 	cd $CURRENT_DIR
 	
 	cp $ANSIBLE_DIR/examples/ansible.cfg ~/.ansible.cfg
-	# Use paramiko to allow passwords
-	sed -i 's|#\?transport.*$|transport = paramiko|' ~/.ansible.cfg
-	# Disable host key checking for performance
-	sed -i 's|#host_key_checking = False|host_key_checking = False|' ~/.ansible.cfg
+	# Use paramiko to allow passwords and Disable host key checking for performance
+	sed -i 's|#\?transport.*$|transport = paramiko|;s|#host_key_checking = False|host_key_checking = False|' ~/.ansible.cfg
+
 	# touch a file to mark first app init completed
 	touch /etc/ansible-babun-bootstrap.completed
     printf ".ok\n"    
@@ -112,6 +114,9 @@ source ~/ansible-babun-bootstrap/ansible-babun-bootstrap.sh
 figlet "MRM Automation"
 cd ~/ansible_workspace
 EOF
+
+	pact install python-yaml python-jinja2 &> /dev/null
+		
 	printf ".ok\n\n"    
 	echo "Ansible in Babun completed, please restart Babun!"
 fi
