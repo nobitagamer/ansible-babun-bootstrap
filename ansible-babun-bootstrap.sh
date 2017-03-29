@@ -25,7 +25,8 @@ then
     sleep 1
     clear
 else
-    printf "\n~ MRM Ansible Install ~\n\n"
+    cd $HOME
+	printf "\n~ MRM Ansible Install ~\n\n"
     printf "installing dependencies.."
     pact install figlet gcc-g++ wget python python-crypto python-paramiko libyaml-devel libffi-devel &> /dev/null
     
@@ -33,15 +34,22 @@ else
     python get-pip.py &> /dev/null
     rm -r get-pip.py
     
+	curl -sL https://github.com/pallets/markupsafe/archive/master.zip -o markupsafe.zip
+	unzip markupsafe.zip
+	cd markupsafe-master
+	python setup.py --without-speedups install
+	cd ..
+	rm -rf markupsafe*
+	
     if [ $AWS_CLI = 1 ] 
     then
-        pip install pywinrm cryptography pyyaml jinja2 markupsafe httplib2 boto awscli --install-option="--without-speedups" &> /dev/null
+        pip install pywinrm cryptography httplib2 boto awscli &> /dev/null
     else
-        pip install pywinrm cryptography pyyaml jinja2 markupsafe --install-option="--without-speedups" &> /dev/null
+        pip install pywinrm cryptography pyyaml jinja2 &> /dev/null
     fi
-    printf ".ok\n"
+	printf ".ok\n"
     
-    printf "installing ansible.."
+	printf "installing ansible.."
     git clone https://github.com/ansible/ansible.git --recursive $ANSIBLE_DIR  &> /dev/null
     cd $ANSIBLE_DIR
     source ./hacking/env-setup &> /dev/null
