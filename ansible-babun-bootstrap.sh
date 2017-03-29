@@ -90,7 +90,6 @@ control_path = /tmp/ansible-ssh-%%h-%%p-%%r
 become_user = true	
 EOF
 	printf ".ok\n"    
-	
 	printf "configuring zshell for ansible.."
 	
 	cat >> ~/.zshrc <<'EOF'
@@ -110,8 +109,6 @@ figlet "MRM Automation"
 cd ~/ansible_workspace
 EOF
 
-	pact install python-yaml python-jinja2 &> /dev/null
-		
 	printf ".ok\n\n"    
 	echo "Ansible in Babun completed, please restart Babun!"
 fi
