@@ -35,9 +35,9 @@ else
     
     if [ $AWS_CLI = 1 ] 
     then
-        pip install markupsafe --install-option="--without-speedups" pywinrm cryptography pyyaml jinja2 httplib2 boto awscli &> /dev/null
+        pip install pywinrm cryptography pyyaml jinja2 markupsafe httplib2 boto awscli --install-option="--without-speedups" &> /dev/null
     else
-        pip install markupsafe --install-option="--without-speedups" pywinrm cryptography pyyaml jinja2 &> /dev/null
+        pip install pywinrm cryptography pyyaml jinja2 markupsafe --install-option="--without-speedups" &> /dev/null
     fi
     printf ".ok\n"
     
