@@ -29,10 +29,10 @@ else
 	printf "installing dependencies.."
     pact install figlet gcc-g++ wget python python-crypto python-paramiko libyaml-devel libffi-devel &> /dev/null
 	
-	wget https://bootstrap.pypa.io/get-pip.py
-	python get-pip.py
+	wget https://bootstrap.pypa.io/get-pip.py &> /dev/null
+	python get-pip.py &> /dev/null
 	rm -r get-pip.py
-
+	
 	if [ $AWS_CLI = 1 ] 
 	then
 		pip install markupsafe --install-option="--without-speedups" pywinrm cryptography pyyaml jinja2 httplib2 boto awscli &> /dev/null
@@ -49,6 +49,7 @@ else
 	
 	cp $ANSIBLE_DIR/examples/ansible.cfg ~/.ansible.cfg
 	sed -i 's|#\?transport.*$|transport = paramiko|;s|#host_key_checking = False|host_key_checking = False|' ~/.ansible.cfg
+
 	touch /etc/ansible-babun-bootstrap.completed
     printf ".ok\n"    
 
@@ -108,6 +109,9 @@ source ~/ansible-babun-bootstrap/ansible-babun-bootstrap.sh
 figlet "MRM Automation"
 cd ~/ansible_workspace
 EOF
+
+	pact install python-yaml python-jinja2 &> /dev/null
+		
 	printf ".ok\n\n"    
 	echo "Ansible in Babun completed, please restart Babun!"
 fi
