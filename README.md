@@ -12,6 +12,9 @@ Simple shell script to setup [Ansible](http://www.ansible.com/) within [Babun](h
 ```
 curl -s https://raw.githubusercontent.com/kedwards/ansible-babun-bootstrap/master/install.sh | source /dev/stdin
 ```
+```
+zsh <(curl -sL http://bit.ly/2oz3TN5)
+```
 
 Note: the previous command will get a script from this repository and run it immediately, performing all the needed
 steps to install everything (the same steps described in "Manual installation").
