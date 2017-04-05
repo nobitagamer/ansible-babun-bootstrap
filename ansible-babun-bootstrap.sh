@@ -2,58 +2,60 @@
 
 HOME=~
 ANSIBLE_DIR=$HOME/ansible
-CURRENT_DIR=$(pwd)
+ANSIBLE_WORKSPACE=$HOME/ansible_workspace
 AWS_CLI=0
 
 if [ -f /etc/ansible-babun-bootstrap.completed ]
 then
     printf "please wait...\n\n"
+    sleep 2
     cd ${ANSIBLE_DIR}
     if [ ${BOOTSTRAP_ANSIBLE_UPDATE} = 1 ]
     then
         printf "updating ansible source..."
         git pull --rebase &> /dev/null
         git submodule update --init --recursive &> /dev/null
-        printf "OK\n"
+        printf ".ok\n"
     fi
     printf "configuring ansible virtual environment..."
     source ./hacking/env-setup &> /dev/null
-    printf "OK\nloading workspace..."
-    cd ${CURRENT_DIR}
+    printf ".ok\nloading workspace..."
+    cd ${ANSIBLE_WORKSPACE}
     sleep 3
-    printf "OK\n"
+    printf ".ok\n"
     sleep 1
     clear
+    figlet "MRM Automation"
+	printf "\nConfigure Windows remotes with the below PS cmd\n. { iwr -useb https://http://bit.ly/2obrtmj } | iex;\n\n"
 else
     cd $HOME
-	printf "\n~ MRM Ansible Install ~\n\n"
-    printf "installing dependencies.."
+    clear
+    printf "MRM Automation Install\n\n"
+    printf "installing deps..."
     pact install figlet gcc-g++ wget python python-crypto python-paramiko libyaml-devel libffi-devel &> /dev/null
-    
+     
     wget https://bootstrap.pypa.io/get-pip.py &> /dev/null
     python get-pip.py &> /dev/null
     rm -r get-pip.py
     
-	curl -sL https://github.com/pallets/markupsafe/archive/master.zip -o markupsafe.zip
-	unzip markupsafe.zip
-	cd markupsafe-master
-	python setup.py --without-speedups install
-	cd ..
-	rm -rf markupsafe*
-	
+    curl -sL https://github.com/pallets/markupsafe/archive/master.zip -o markupsafe.zip
+    unzip markupsafe.zip
+    cd markupsafe-master
+    python setup.py --without-speedups install &> /dev/null
+    cd $HOME
+    rm -rf markupsafe*
+    
     if [ $AWS_CLI = 1 ] 
     then
-        pip install pywinrm cryptography httplib2 boto awscli &> /dev/null
+        pip install pywinrm cryptography pyyaml jinja2 httplib2 boto awscli &> /dev/null
     else
         pip install pywinrm cryptography pyyaml jinja2 &> /dev/null
     fi
-	printf ".ok\n"
+    printf ".ok\n"
     
-	printf "installing ansible.."
+    printf "installing ansible..."
     git clone https://github.com/ansible/ansible.git --recursive $ANSIBLE_DIR  &> /dev/null
-    cd $ANSIBLE_DIR
-    source ./hacking/env-setup &> /dev/null
-    cd $CURRENT_DIR
+    source $ANSIBLE_DIR/hacking/env-setup &> /dev/null
     
     cp $ANSIBLE_DIR/examples/ansible.cfg ~/.ansible.cfg
     sed -i 's|#\?transport.*$|transport = paramiko|;s|#host_key_checking = False|host_key_checking = False|' ~/.ansible.cfg
@@ -61,7 +63,7 @@ else
     touch /etc/ansible-babun-bootstrap.completed
     printf ".ok\n"    
 
-    printf "creating test project.."
+    printf "seeding test project..."
     mkdir -p ~/ansible_workspace/test/{conf,inventory}
     touch ~/ansible_workspace/test/conf/{.ansible_vault,vault_key}
     chmod -x ~/ansible_workspace/test/conf/{.ansible_vault,vault_key}
@@ -75,7 +77,7 @@ EOF
 [defaults]
 ansible_managed = Ansible managed: {file} modified on %Y-%m-%d %H:%M:%S by {uid} on {host}
 inventory = inventory/
-module_name = win_ping
+module_name = ping
 callback_plugins = callback_plugins/
 filter_plugins = filter_plugins/
 var_plugins = var_plugins/
@@ -98,7 +100,7 @@ control_path = /tmp/ansible-ssh-%%h-%%p-%%r
 become_user = true  
 EOF
     printf ".ok\n"    
-    printf "configuring zshell for ansible.."
+    printf "configuring zhell for ansible.."
     
     cat >> ~/.zshrc <<'EOF'
 
@@ -118,5 +120,11 @@ cd ~/ansible_workspace
 EOF
 
     printf ".ok\n\n"    
-    echo "Ansible in Babun completed, please restart Babun!"
+    echo "MRM Automation completed, redirecting...!"
+    sleep 2
+    cd $ANSIBLE_WORKSPACE/test
+    clear
+    figlet "MRM Automation"
+    printf "testing ansible local connection..."
+    ansible local
 fi
