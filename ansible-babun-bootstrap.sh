@@ -39,8 +39,8 @@ else
     rm -r get-pip.py
     
     curl -sL https://github.com/pallets/markupsafe/archive/master.zip -o markupsafe.zip
-    unzip markupsafe.zip
-    cd markupsafe-master
+    unzip markupsafe.zip &> /dev/null
+    cd markupsafe-master 
     python setup.py --without-speedups install &> /dev/null
     cd $HOME
     rm -rf markupsafe*
@@ -125,6 +125,15 @@ EOF
     cd $ANSIBLE_WORKSPACE/test
     clear
     figlet "MRM Automation"
-    printf "testing ansible local connection..."
+    printf "testing ansible local connection...\n"
     ansible local
+
+    printf "Retrieving ansible-openlink repository..."
+    if [ -d  $ANSIBLE_WORKSPACE/ansible-openlink ]
+	then
+		git clone https://github.com/kedwards/ansible-openlink.git $ANSIBLE_WORKSPACE/ansible-openlink  &> /dev/null
+    fi
+	cd $ANSIBLE_WORKSPACE/ansible-openlink
+	printf ".ok\nTesting PING to all openlinkn servers\n"
+	ansible  vp_all,ew_all -i inventory	
 fi
