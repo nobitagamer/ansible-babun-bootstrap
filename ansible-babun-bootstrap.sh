@@ -126,7 +126,7 @@ EOF
     clear
     figlet "MRM Automation"
     printf "testing ansible local connection...\n"
-    ansible local
+    ansible local -m ping
 
     if [ ! -d  $ANSIBLE_WORKSPACE/ansible-openlink ]
     then
@@ -136,7 +136,7 @@ EOF
     printf ".ok\n"
 
     cd $ANSIBLE_WORKSPACE/ansible-openlink
-    git checkout master &> /dev/null\
+    git checkout master &> /dev/null
     printf ".ok\nTesting PING to all openlinkn servers\n"
-    ansible  vp_all,ew_all -i inventory
+    ansible  vp_all,ew_all -i inventory -m win_ping
 fi
