@@ -10,7 +10,7 @@ then
     printf "please wait...\n\n"
     sleep 2
     cd ${ANSIBLE_DIR}
-    if [ ${BOOTSTRAP_ANSIBLE_UPDATE} -eq 1 ]
+    if [ ${BOOTSTRAP_ANSIBLE_UPDATE} == 1 ]
     then
         printf "updating ansible source..."
         git pull --rebase &> /dev/null
