@@ -31,11 +31,11 @@ then
         printf "Retrieving ansible-openlink repository..."
         git clone https://github.com/kedwards/ansible-openlink.git $ANSIBLE_WORKSPACE/ansible-openlink &> /dev/null
     fi
-    printf ".ok\n"
+    printf ".ok\n\n"
 
     cd $ANSIBLE_WORKSPACE/ansible-openlink
     git checkout master &> /dev/null
-    printf ".ok\nTesting PING to all openlink servers\n"
+    printf "Testing PING to all openlink servers\n"
     chmod -x conf/{.ansible_vault,vault_key}
 	ansible  vp_all,ew_all -i inventory -m win_ping
 	
