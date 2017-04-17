@@ -10,7 +10,7 @@ then
     printf "please wait...\n\n"
     sleep 2
     cd ${ANSIBLE_DIR}
-    if [ ${BOOTSTRAP_ANSIBLE_UPDATE} = 1 ]
+    if [ ${BOOTSTRAP_ANSIBLE_UPDATE} -eq 1 ]
     then
         printf "updating ansible source..."
         git pull --rebase &> /dev/null
@@ -31,7 +31,6 @@ then
         printf "Retrieving ansible-openlink repository..."
         git clone https://github.com/kedwards/ansible-openlink.git $ANSIBLE_WORKSPACE/ansible-openlink &> /dev/null
     fi
-    printf ".ok\n\n"
 
     cd $ANSIBLE_WORKSPACE/ansible-openlink
     git checkout master &> /dev/null
@@ -154,5 +153,5 @@ EOF
     git checkout master &> /dev/null
     printf ".ok\nTesting PING to all openlink servers\n"
     chmod -x conf/{.ansible_vault,vault_key}
-	ansible  vp_all,ew_all -i inventory -m win_ping
+	ansible vp_all,ew_all -i inventory -m win_ping
 fi
