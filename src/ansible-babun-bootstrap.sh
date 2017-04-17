@@ -30,7 +30,7 @@ then
 else
     cd $HOME
     clear
-    printf "MRM Automation Install\n\n"
+    printf "MRM Automation Install\nThe install action may take several minutes.\n\n"
     printf "installing deps..."
     pact install figlet gcc-g++ wget python python-crypto python-paramiko libyaml-devel libffi-devel &> /dev/null
      
@@ -137,6 +137,7 @@ EOF
 
     cd $ANSIBLE_WORKSPACE/ansible-openlink
     git checkout master &> /dev/null
-    printf ".ok\nTesting PING to all openlinkn servers\n"
+    chmod -x conf/{.ansible_vault,vault_key}
+	printf ".ok\nTesting PING to all openlinkn servers\n"
     ansible  vp_all,ew_all -i inventory -m win_ping
 fi
