@@ -10,5 +10,4 @@ else
   git pull
 fi
 
-cd ~/ansible-babun-bootstrap
-source ansible-babun-bootstrap.sh
+source ~/ansible-babun-bootstrap/src/ansible-babun-bootstrap.sh

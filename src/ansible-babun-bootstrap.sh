@@ -24,7 +24,22 @@ then
     sleep 3
     printf ".ok\n"
     sleep 1
-    clear
+    
+	clear
+	if [ ! -d  $ANSIBLE_WORKSPACE/ansible-openlink ]
+    then
+        printf "Retrieving ansible-openlink repository..."
+        git clone https://github.com/kedwards/ansible-openlink.git $ANSIBLE_WORKSPACE/ansible-openlink &> /dev/null
+    fi
+    printf ".ok\n"
+
+    cd $ANSIBLE_WORKSPACE/ansible-openlink
+    git checkout master &> /dev/null
+    printf ".ok\nTesting PING to all openlink servers\n"
+    chmod -x conf/{.ansible_vault,vault_key}
+	ansible  vp_all,ew_all -i inventory -m win_ping
+	
+	clear
     figlet "MRM Automation"
 	printf "\nConfigure Windows remotes with the below PS cmd\n. { iwr -useb https://http://bit.ly/2obrtmj } | iex;\n\n"
 else
@@ -137,7 +152,7 @@ EOF
 
     cd $ANSIBLE_WORKSPACE/ansible-openlink
     git checkout master &> /dev/null
+    printf ".ok\nTesting PING to all openlink servers\n"
     chmod -x conf/{.ansible_vault,vault_key}
-	printf ".ok\nTesting PING to all openlinkn servers\n"
-    ansible  vp_all,ew_all -i inventory -m win_ping
+	ansible  vp_all,ew_all -i inventory -m win_ping
 fi
