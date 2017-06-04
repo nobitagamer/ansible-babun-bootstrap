@@ -2,12 +2,12 @@
 
 if [ ! -d ~/ansible-babun-bootstrap ]
 then
-  git clone https://github.com/kedwards/ansible-babun-bootstrap.git ~/ansible-babun-bootstrap
+  git clone https://github.com/nobitagamer/ansible-babun-bootstrap.git ~/ansible-babun-bootstrap
   cd ~/ansible-babun-bootstrap
-  git checkout mrm
+  git checkout master
 else
   cd ~/ansible-babun-bootstrap
-  git checkout mrm
+  git checkout master
   git pull
 fi
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env zsh
 
-# HOME=~
 ANSIBLE_DIR=$HOME/ansible
 ANSIBLE_WORKSPACE=$HOME/ansible_workspace
 AWS_CLI=0
@@ -22,17 +21,17 @@ then
     printf "Configuring ansible virtual environment..."
     source ./hacking/env-setup &> /dev/null
 
-	printf ".ok\nUpdating Ansible Vagrant Shims in bin Directory..."
-	cp -ru $HOME/ansible-babun-bootstrap/ansible-playbook.bat $HOME/ansible/bin/ansible-playbook.bat
+    printf ".ok\nUpdating Ansible Vagrant Shims in bin Directory..."
+    cp -ru $HOME/ansible-babun-bootstrap/ansible-playbook.bat $HOME/ansible/bin/ansible-playbook.bat
 
-  printf ".ok\nLoading workspace..."
+    printf ".ok\nLoading workspace..."
     cd ${ANSIBLE_WORKSPACE}
     sleep 3
     printf ".ok\n"
     sleep 1
-    
-	clear
-	if [ ! -d  $ANSIBLE_WORKSPACE/ansible-openlink ]
+
+    clear
+    if [ ! -d  $ANSIBLE_WORKSPACE/ansible-openlink ]
     then
         printf "Retrieving ansible-openlink repository..."
         git clone https://github.com/kedwards/ansible-openlink.git $ANSIBLE_WORKSPACE/ansible-openlink &> /dev/null
@@ -42,11 +41,12 @@ then
     git checkout master &> /dev/null
     printf "Testing PING to all openlink servers\n"
     chmod -x conf/{.ansible_vault,vault_key}
-	ansible  vp_all,ew_all -i inventory -m win_ping
-  # clear
+    ansible local -i inventory -m win_ping
 
-  figlet "MRM Automation"
-	printf "\nConfigure Windows remotes with the below PS cmd\n. { iwr -useb https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1 } | iex;\n\n"
+    clear
+
+    figlet "MRM Automation"
+    printf "\nConfigure Windows remotes with the below PS cmd\n. { iwr -useb https://raw.githubusercontent.com/ansible/ansible/devel/examples/scripts/ConfigureRemotingForAnsible.ps1 } | iex;\n\n"
 else
     cd $HOME
     clear
@@ -54,20 +54,7 @@ else
     printf "Installing deps..."
     pact install figlet gcc-g++ wget python python-crypto python-paramiko libyaml-devel libffi-devel &> /dev/null
 
-    if [ ! -f /usr/bin/sudo ]
-    then
-        #Replace babun sudo with new fake sudo for Ansible, throwing way all sudo args.
-        echo "#!/usr/bin/env bash" > /usr/bin/sudo
-        echo "count=0" >> /usr/bin/sudo
-        echo "for var in "$@"" >> /usr/bin/sudo
-        echo "  do" >> /usr/bin/sudo
-        echo "    (( count++ ))" >> /usr/bin/sudo
-        echo "  done" >> /usr/bin/sudo
-        echo "shift $count" >> /usr/bin/sudo
-        echo "exec "$@"" >> /usr/bin/sudo
-    fi
-
-    #Create initial Ansible hosts inventory
+    # Create initial Ansible hosts inventory
     # mkdir -p /etc/ansible/
     # echo "127.0.0.1" > /etc/ansible/hosts
     # chmod -x /etc/ansible/hosts
@@ -173,6 +160,8 @@ EOF
     cd $ANSIBLE_WORKSPACE/ansible-openlink
     git checkout master &> /dev/null
     printf ".ok\nTesting PING to all openlink servers\n"
+
+    touch conf/{.ansible_vault,vault_key}
     chmod -x conf/{.ansible_vault,vault_key}
-	ansible vp_all,ew_all -i inventory -m win_ping
+	  ansible local -i inventory -m win_ping
 fi
